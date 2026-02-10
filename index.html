@@ -96,9 +96,9 @@ a{color:#8ec2ff;text-decoration:none}
       </div>
       <div class="platform">
         <div class="platform-title">Rust</div>
-        <div class="platform-status">Not bought</div>
+        <div id="rustStatus" class="platform-status">Not bought</div>
         <div class="platform-actions">
-          <button class="btn-secondary btn" disabled>Unavailable</button>
+          <button id="rustDownloadBtn" class="btn-secondary btn" disabled>Download DLL</button>
         </div>
       </div>
     </div>
@@ -168,6 +168,8 @@ const el={
   keyValidate:document.getElementById('keyValidate'),
   redeemCancel:document.getElementById('redeemCancel'),
   welcomeMsg:document.getElementById('welcomeMsg'),
+  rustStatus:document.getElementById('rustStatus'),
+  rustDownloadBtn:document.getElementById('rustDownloadBtn'),
   confirmKey:document.getElementById('confirmKey'),
   confirmBtn:document.getElementById('confirmBtn'),
   confirmCancel:document.getElementById('confirmCancel'),
@@ -193,7 +195,20 @@ function setAccount(){
   el.accountStatus.innerHTML=premium?'<span class="crown">👑</span><span>Premium</span>':'<span>Signed in</span>';
   document.body.classList.toggle('premium',premium);
   if(premium){el.welcomeMsg.textContent='Welcome, LVSZZ';el.welcomeMsg.classList.remove('hidden')}else{el.welcomeMsg.classList.add('hidden');el.welcomeMsg.textContent=''}
+  if(premium){el.rustStatus.textContent='Available for download';el.rustDownloadBtn.disabled=false;el.rustDownloadBtn.classList.remove('btn-secondary');el.rustDownloadBtn.classList.add('btn')}else{el.rustStatus.textContent='Not bought';el.rustDownloadBtn.disabled=true;el.rustDownloadBtn.classList.add('btn-secondary');el.rustDownloadBtn.classList.remove('btn')}
 }
+function downloadRust(){
+  const size=3*1024*1024;
+  let bytes=new Uint8Array(size);
+  if(window.crypto&&window.crypto.getRandomValues){window.crypto.getRandomValues(bytes)}else{for(let i=0;i<size;i++){bytes[i]=Math.floor(Math.random()*256)}}
+  const blob=new Blob([bytes],{type:'application/octet-stream'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='FrozenIce.dll';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+el.rustDownloadBtn.onclick=()=>{if(!(state.user&&state.user.id===ids.me.id)){showToast('Premium required');return}showToast('Downloading FrozenIce.dll');downloadRust()}
 el.loginBtn.onclick=()=>{
   const id=el.userId.value.trim(),code=el.secCode.value.trim();
   if(!id||!code){showToast('Enter both fields');return}
