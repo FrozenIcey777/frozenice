@@ -195,20 +195,23 @@ function setAccount(){
   el.accountStatus.innerHTML=premium?'<span class="crown">👑</span><span>Premium</span>':'<span>Signed in</span>';
   document.body.classList.toggle('premium',premium);
   if(premium){el.welcomeMsg.textContent='Welcome, LVSZZ';el.welcomeMsg.classList.remove('hidden')}else{el.welcomeMsg.classList.add('hidden');el.welcomeMsg.textContent=''}
-  if(premium){el.rustStatus.textContent='Available for download';el.rustDownloadBtn.disabled=false;el.rustDownloadBtn.classList.remove('btn-secondary');el.rustDownloadBtn.classList.add('btn')}else{el.rustStatus.textContent='Not bought';el.rustDownloadBtn.disabled=true;el.rustDownloadBtn.classList.add('btn-secondary');el.rustDownloadBtn.classList.remove('btn')}
+  if(premium){el.rustStatus.textContent='Available for download';el.rustDownloadBtn.disabled=false;el.rustDownloadBtn.removeAttribute('disabled');el.rustDownloadBtn.classList.remove('btn-secondary');el.rustDownloadBtn.classList.add('btn')}else{el.rustStatus.textContent='Not bought';el.rustDownloadBtn.disabled=true;el.rustDownloadBtn.setAttribute('disabled','');el.rustDownloadBtn.classList.add('btn-secondary');el.rustDownloadBtn.classList.remove('btn')}
 }
 function downloadRust(){
-  const size=3*1024*1024;
-  let bytes=new Uint8Array(size);
-  if(window.crypto&&window.crypto.getRandomValues){window.crypto.getRandomValues(bytes)}else{for(let i=0;i<size;i++){bytes[i]=Math.floor(Math.random()*256)}}
-  const blob=new Blob([bytes],{type:'application/octet-stream'});
+  const size=5*1024*1024;
+  const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+  const rand=new Uint8Array(size);
+  if(window.crypto&&window.crypto.getRandomValues){window.crypto.getRandomValues(rand)}else{for(let i=0;i<size;i++){rand[i]=Math.floor(Math.random()*256)}}
+  const buf=new Uint8Array(size);
+  for(let i=0;i<size;i++){buf[i]=alphabet.charCodeAt(rand[i]%alphabet.length)}
+  const blob=new Blob([buf],{type:'application/octet-stream'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='FrozenIce.dll';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  document.body.appendChild(a);
+  setTimeout(()=>{a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url)},1000)},0);
 }
-el.rustDownloadBtn.onclick=()=>{if(!(state.user&&state.user.id===ids.me.id)){showToast('Premium required');return}showToast('Downloading FrozenIce.dll');downloadRust()}
+el.rustDownloadBtn.onclick=()=>{if(!(state.user&&state.user.id===ids.me.id)){showToast('Premium required');return}showToast('Downloading FrozenIce.dll');downloadRust();setTimeout(()=>showToast('Downloaded'),1200)}
 el.loginBtn.onclick=()=>{
   const id=el.userId.value.trim(),code=el.secCode.value.trim();
   if(!id||!code){showToast('Enter both fields');return}
